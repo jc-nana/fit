@@ -233,6 +233,8 @@ export default class FitPlugin extends Plugin {
 			}
 			console.error("Caught unknown error: ", error)
 			notice.setMessage("Encountered unknown error during sync, view console log for details")
+			new Notice(error.message)
+			new Notice(error)
 			return true
 		}
 	}
