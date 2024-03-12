@@ -1,4 +1,4 @@
-import { TFile, Vault, base64ToArrayBuffer } from "obsidian";
+import { Notice, TFile, Vault, base64ToArrayBuffer } from "obsidian";
 import { FileOpRecord } from "./fitTypes";
 
 
@@ -54,13 +54,21 @@ export class VaultOperations implements IVaultOperations {
     async writeToLocal(path: string, content: string): Promise<FileOpRecord> {
         // adopted getAbstractFileByPath for mobile compatiability
         // TODO: add capability for creating folder from remote
+        new Notice("writeToLocal 1")
         const file = this.vault.getAbstractFileByPath(path)
+        new Notice("writeToLocal 2")
         if (file && file instanceof TFile) {
+            new Notice("writeToLocal 3a")
+            new Notice(file.name)
             await this.vault.modifyBinary(file, base64ToArrayBuffer(content))
+            new Notice("writeToLocal 4a")
             return {path, status: "changed"}
         } else if (!file) {
+            new Notice("writeToLocal 3b")
             this.ensureFolderExists(path)
+            new Notice("writeToLocal 4b")
             await this.vault.createBinary(path, base64ToArrayBuffer(content))
+            new Notice("writeToLocal 5b")
             return {path, status: "created"}
         } 
             throw new Error(`${path} writeToLocal operation unsuccessful, vault abstractFile on ${path} is of type ${typeof file}`);
