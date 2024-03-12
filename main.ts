@@ -184,7 +184,9 @@ export default class FitPlugin extends Plugin {
 				syncNotice.setMessage("Sync successful")
 			} else {
 				// TODO allow users to select displacement upon conflict (displace local changes or remote changes to _fit folder)
-				syncNotice.setMessage(`Change conflict detected`)
+				syncNotice.setMessage(`Change conflicts detected`)
+				const {addToLocal, deleteFromLocal} = await this.fitPull.prepareChangesToExecute(
+					remoteUpdate.remoteChanges)
 				const syncLocalUpdate = {
 					localChanges,
 					localTreeSha: await this.fit.computeLocalSha(),
@@ -192,13 +194,14 @@ export default class FitPlugin extends Plugin {
 				}
 				await this.fitPush.pushChangedFilesToRemote(syncLocalUpdate, this.saveLocalStoreCallback, true)
 				syncNotice.setMessage(`Local changes uploaded, conflicting remote changes written in _fit`)
+				const localFileOpsRecord = await this.vaultOps.updateLocalFiles(addToLocal, deleteFromLocal)
 				showUnappliedConflicts(clashedFiles)
-
+				const ops = localFileOpsRecord.concat(fileOpsRecord)
+				showFileOpsRecord([
+					{heading: "Local file updates:", ops},
+					{heading: "Remote file updates:", ops: localChanges}
+				])
 			}
-			showFileOpsRecord([
-				{heading: "Local file updates:", ops: fileOpsRecord},
-				{heading: "Remote file updates:", ops: localChanges}
-			])
 		}
 
 
@@ -233,9 +236,6 @@ export default class FitPlugin extends Plugin {
 			}
 			console.error("Caught unknown error: ", error)
 			notice.setMessage("Encountered unknown error during sync, view console log for details")
-			new Notice("Here")
-			new Notice(error.message)
-			new Notice(error)
 			return true
 		}
 	}
