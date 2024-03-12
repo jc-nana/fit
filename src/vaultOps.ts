@@ -1,4 +1,4 @@
-import { TFile, Vault, base64ToArrayBuffer } from "obsidian";
+import { Notice, TFile, Vault, base64ToArrayBuffer } from "obsidian";
 import { FileOpRecord } from "./fitTypes";
 
 
@@ -43,8 +43,16 @@ export class VaultOperations implements IVaultOperations {
     async ensureFolderExists(path: string): Promise<void> {
         // extract folder path, return empty string is no folder path is matched (exclude the last /)
         const folderPath = path.match(/^(.*)\//)?.[1] || '';
-        if (folderPath != "" && !(this.vault.getFolderByPath(folderPath))) {
-            await this.vault.createFolder(folderPath)
+        if (folderPath != "") {
+            new Notice(`Attempting to get folder at ${folderPath}`)
+            const folder = this.vault.getAbstractFileByPath(folderPath)
+            if (!folder) {
+                new Notice(`Attempting to create folder`)
+                await this.vault.createFolder(folderPath)
+                new Notice(`folder created successfully`)
+            } else if (folder instanceof TFile) {
+                new Notice(`get file ${folderPath} in folder path when trying to ensure folder exists`)
+            }
         }
     }
 
